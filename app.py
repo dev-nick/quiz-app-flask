@@ -28,9 +28,9 @@ app = Flask(__name__)
 app.secret_key= 'huihui'
 
 #Config MySQL
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = ''
-app.config['MYSQL_PASSWORD'] = ''
+app.config['MYSQL_HOST'] = 'database-1.cf7vuok0hbtn.us-east-1.rds.amazonaws.com'
+app.config['MYSQL_USER'] = 'admin'
+app.config['MYSQL_PASSWORD'] = 'flaskrds'
 app.config['MYSQL_DB'] = 'flask'
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
@@ -40,8 +40,8 @@ app.config.update(
 	MAIL_SERVER='smtp.gmail.com',
 	MAIL_PORT=465,
 	MAIL_USE_SSL=True,
-	MAIL_USERNAME = '',
-	MAIL_PASSWORD = ''
+	MAIL_USERNAME = 'nickqwerty76@gmail.com',
+	MAIL_PASSWORD = 'Zeitgeist77'
 	)
 mail = Mail(app)
 
