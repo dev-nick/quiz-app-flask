@@ -22,98 +22,20 @@ from wtforms_components import TimeField
 from wtforms.fields.html5 import DateField
 from wtforms.validators import ValidationError
 import socket
-from emailverifier import Client
 
 app = Flask(__name__)
 app.secret_key= 'huihui'
 
 #Config MySQL
-app.config['MYSQL_HOST'] = 'database-1.cf7vuok0hbtn.us-east-1.rds.amazonaws.com'
-app.config['MYSQL_USER'] = 'admin'
-app.config['MYSQL_PASSWORD'] = 'flaskrds'
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'test'
+app.config['MYSQL_PASSWORD'] = 'equinoxpass'
 app.config['MYSQL_DB'] = 'flask'
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 
-app.config.update(
-	DEBUG=True,
-	MAIL_SERVER='smtp.gmail.com',
-	MAIL_PORT=465,
-	MAIL_USE_SSL=True,
-	MAIL_USERNAME = 'nickqwerty76@gmail.com',
-	MAIL_PASSWORD = 'Zeitgeist77'
-	)
-mail = Mail(app)
-
-def asynch(f):
-	@wraps(f)
-	def wrapper(*args, **kwargs):
-		thr = Thread(target=f, args=args, kwargs=kwargs)
-		thr.start()
-	return wrapper
-
-@asynch
-def send_async_email(app, msg):
-	with app.app_context():
-		mail.send(msg)
 
 
-htmlbody='''
-Your account on <b>The Best</b> Quiz App was successfully created.
-Please click the link below to confirm your email address and
-activate your account:
-  
-<a href="{{ confirm_url }}">{{ confirm_url }}</a>
- <p>
---
-Questions? Comments? Email </p>
-'''
-
-#email verifier api key
-client = Client('at_rFxZz7zEX8CO8V5IDBfzexOe2fW8b')
-
-
-
-def get_local_ip():	
-	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-	s.connect(('8.8.8.8', 1))
-	local_ip_address = s.getsockname()[0]
-	return local_ip_address
-
-
-def send_email(recipients,html_body):
-	try:
-		msg = Message('Confirm Your Email Address',
-		  sender="nickqwerty76@gmail.com",
-		  recipients=recipients)
-		msg.html = html_body
-		send_async_email(app, msg)
-		# return 'Mail sent!'
-		return
-	except Exception as e:
-		# return(str(e))
-		return
-
-
-def send_confirmation_email(user_email):
-	confirm_serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
- 
-	confirm_url = url_for('confirm_email',
-		token=confirm_serializer.dumps(user_email, salt='email-confirmation-salt'),
-		_external=True)
-	local_ip = get_local_ip()
-	x=""
-	if 'localhost' in confirm_url:
-		x=confirm_url.split("localhost:5000")
-	else:
-		x=confirm_url.split("127.0.0.1:5000")
-	confirm_url = x[0] + local_ip + ":5000"+ x[1]
-	html = render_template_string(htmlbody, confirm_url=confirm_url)
-
-	send_email([user_email], html)
-
-
-# test this function whether correct link is produced##############
 
 #init Mysql
 mysql = MySQL(app)
@@ -152,7 +74,7 @@ def doctodict(filepath):
 class RegisterForm(Form):
 	name = StringField('Name', [validators.Length(min=3, max=50)])
 	username = StringField('Username', [validators.Length(min=4,max=25)])
-	email = StringField('Email', [validators.Email()])
+	# email = StringField('Email', [validators.Email()])
 	password = PasswordField('Password', [
 			validators.Regexp("^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$", message="Password should contain min 8 characters including 1 letter and 1 number."),
 			validators.DataRequired(),
@@ -202,26 +124,14 @@ def register():
 	form = RegisterForm(request.form)
 	if request.method == 'POST' and form.validate():
 		name = form.name.data 
-		email = form.email.data
-
-		#email verifier	
-		data = client.get(email)
-		if str(data.smtp_check) == 'False':
-			flash('Invalid email, please provide a valid email address','danger')
-			return render_template('register.html', form=form)
-
-		send_confirmation_email(email)
-
 		username = form.username.data
 		password = sha256_crypt.encrypt(str(form.password.data))
 		cur = mysql.connection.cursor()
-		cur.execute('INSERT INTO users(username,name,email, password,confirmed) values(%s,%s,%s,%s,0)', (username,name, email, password))
+		
+		cur.execute('INSERT INTO users(username, name, password) values(%s,%s,%s)', (username, name, password))
 		mysql.connection.commit()
 		cur.close()
-		flash('Thanks for registering!  Please check your email to confirm your email address.', 'success')
 		return redirect(url_for('login')) 
-		# change in login function to redirect to warning page
-
 	return render_template('register.html', form=form)
 
 	
@@ -235,11 +145,7 @@ def login():
 		if results > 0:
 			data = cur.fetchone()
 			password = data['password']
-			confirmed = data['confirmed']
 			name = data['name']
-			if confirmed == 0:
-				error = 'Please confirm email before logging in'
-				return render_template('login.html', error=error)
 			if sha256_crypt.verify(password_candidate, password):
 				session['logged_in'] = True
 				session['username'] = username
@@ -607,30 +513,11 @@ def tests_created(username):
 		return redirect(url_for('dashboard'))
 
 
-@app.route('/confirm/<token>')
-def confirm_email(token):
-	try:
-		confirm_serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-		email = confirm_serializer.loads(token, salt='email-confirmation-salt', max_age=3600)
-	except:
-		flash('The confirmation link is invalid or has expired.', 'error')
-		return redirect(url_for('login'))
-
-	cur = mysql.connection.cursor()
-	results = cur.execute('SELECT * from users where email = %s' , [email])
-	if results > 0:
-		data = cur.fetchone()
-		email_confirmed = data['confirmed']
-		if email_confirmed:
-			flash('Account already confirmed. Please login.', 'info')
-		else:
-			results = cur.execute('UPDATE users SET confirmed = 1 where email = %s' , [email])
-			mysql.connection.commit()
-			cur.close()
-			flash('Thank you for confirming your email address!', 'success')
-			return redirect(url_for('login'))
-		return redirect(url_for('index'))
-
-
 if __name__ == "__main__":
-	app.run(host = "0.0.0.0",debug=True)
+	app.run(host = "0.0.0.0",port=8000)
+
+
+# from gevent.pywsgi import WSGIServer
+# app.debug = True 
+# http_server = WSGIServer(('', 8000), app)
+# http_server.serve_forever()
