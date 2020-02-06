@@ -429,18 +429,22 @@ def totmarks(username,tests):
 
 
 def marks_calc(username,testid):
-	if username == session['username']:
-		cur = mysql.connection.cursor()
-		results=cur.execute("select neg_mark from teachers where test_id=%s",[testid])
-		results=cur.fetchone()
-		if results['neg_mark']==1:
-			return neg_marks(username,testid) 
-		else:
-			results = cur.execute("select sum(marks) as totalmks from students s,questions q where s.username=%s and s.test_id=%s and s.qid=q.qid and s.test_id=q.test_id and s.ans=q.ans", (username, testid))
-			results = cur.fetchone()
-			if str(results['totalmks']) == 'None':
-				results['totalmks'] = 0
-			return results['totalmks']
+
+# if username == session['username']:
+	cur = mysql.connection.cursor()
+	results=cur.execute("select neg_mark from teachers where test_id=%s",[testid])
+	results=cur.fetchone()
+
+	if results['neg_mark']==1:
+		return neg_marks(username,testid) 
+	else:
+		results = cur.execute("select sum(marks) as totalmks from students s,questions q \
+			where s.username=%s and s.test_id=%s and s.qid=q.qid and s.test_id=q.test_id \
+			and s.ans=q.ans", (username, testid))
+		results = cur.fetchone()
+		if str(results['totalmks']) == 'None':
+			results['totalmks'] = 0
+		return results['totalmks']
 
 		
 @app.route('/<username>/tests-given')

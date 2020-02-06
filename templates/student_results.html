@@ -14,7 +14,7 @@
         </tr>
     </thead>
     <tbody>
-        {% for result in data %}
+        {% for result in data|sort(attribute='marks', reverse = True) %}
             <tr>
                 <td>{{result['srno']}}</td>
                 <td>{{result['name']}}</td>
@@ -24,6 +24,7 @@
         
     </tbody>
 </table>
+<!-- 
 <center><a class="btn btn-primary" id="download">Download as CSV</a></center>
 <script>
     $('#download').on('click', function(){
@@ -42,4 +43,5 @@
     var list = url.split('/');
     $("#download").attr('href','/static/' + list[list.length-1] + ".csv");
 </script>
+ -->
 {% endblock %}
