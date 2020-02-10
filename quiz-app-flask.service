@@ -1,0 +1,28 @@
+[Unit]
+Description=Gunicorn application server running myproject
+
+[Service]
+#allow many execstart
+Type=oneshot 
+
+Environment="PATH=/home/ubuntu/env/bin"
+Environment="PROGRAM_NAME=quiz-app-flask"
+Environment="USERNAME=ubuntu"
+Environment="HOME=/home/ubuntu"
+
+ExecStartPre=/bin/bash -c "/bin/echo 'Starting' >> /var/log/quiz-app-flask.sys.log"
+
+ExecStart=/bin/bash -c "/bin/echo 'Ready to run...' >> /var/log/quiz-app-flask.sys.log"
+ExecStart=/bin/bash -c "/bin/echo $$ > /var/run/quiz-app-flask.pid"
+ExecStart=/bin/bash -c "cd /home/ubuntu/quiz-app-flask && exec /usr/bin/gunicorn3 --workers 3 --threads=30 \
+--log-level=debug --log-file=/var/log/gunicorndebug.log \
+--bind 0.0.0.0:8000 wsgi >> /var/log/quiz-app-flask.sys.log 2>&1"
+
+# or hardcode programname 
+ExecStop=/bin/rm /var/run/quiz-app-flask.pid/
+ExecStop=/bin/bash -c "/bin/echo 'Stopping' >> /var/log/quiz-app-flask.sys.log"
+
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
