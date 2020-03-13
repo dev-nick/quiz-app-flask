@@ -517,9 +517,9 @@ def tests_created(username):
 		return redirect(url_for('dashboard'))
 
 
-if __name__ == "__main__":
-	app.run(host = "0.0.0.0",port=8000)
-
+#if __name__ == "__main__":
+#	app.run(host = "0.0.0.0",port=8000)
+app.run(host="0.0.0.0")
 
 # from gevent.pywsgi import WSGIServer
 # app.debug = True 
