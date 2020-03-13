@@ -518,7 +518,7 @@ def tests_created(username):
 
 
 @app.route('/instructions')
-# @is_logged
+@is_logged
 def ins():
 	return render_template('instructions.html')
 
