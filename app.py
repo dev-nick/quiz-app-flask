@@ -517,6 +517,12 @@ def tests_created(username):
 		return redirect(url_for('dashboard'))
 
 
+@app.route('/instructions')
+# @is_logged
+def ins():
+	return render_template('instructions.html')
+
+
 #if __name__ == "__main__":
 #	app.run(host = "0.0.0.0",port=8000)
 app.run(host="0.0.0.0")
