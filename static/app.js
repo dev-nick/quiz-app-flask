@@ -8,6 +8,17 @@ const MARKED_BOOKMARKED=3;
 const SUBMITTED = 4;
 const SUBMITTED_BOOKMARKED = 5;
 
+// function stop_refresh(event) {
+//   // Cancel the event as stated by the standard.
+//   event.preventDefault();
+//   // Chrome requires returnValue to be set.
+//   event.returnValue = '';
+//   // alert("redirecting...")
+//   // window.location.replace('/dashboard');
+// }
+
+// window.addEventListener("beforeunload", stop_refresh);
+
 
 $(document).ready( function() {
     var url = window.location.href;
@@ -29,6 +40,7 @@ $(document).ready( function() {
     startTimer(time, display);
     sendTime();
     flag_time = true;
+
 })
 
 var unmark_all = function() {
@@ -84,6 +96,7 @@ function startTimer(duration, display) {
 }
 
 function finish_test() {
+
     $('#msg').addClass('alert-info');
     $('#msg').append("Test submitted successfully");
     $.ajax({
@@ -132,6 +145,7 @@ $(document).on('click', '#prev', function(e){
 });
 
 $('#submit').on('click', function(e){
+
     e.preventDefault();
     var marked;
     if(flag_time == false){
@@ -231,6 +245,9 @@ $('#options').on('click', 'td', function(){
 
 var submit_overlay_display = true;
 $('#finish').on("click", function(e) {
+
+    // window.removeEventListener("beforeunload",stop_refresh);
+
     $('#submit-overlay').empty();
     var count = marked();
     var remaining = nos.length - count;
@@ -271,3 +288,4 @@ var make_array = function() {
 window.addEventListener('blur', function() { 
     window.location.replace('/dashboard');
  });
+

@@ -229,6 +229,7 @@ def create_test():
 @is_logged
 def test(testid):
 	global duration,marked_ans
+	# print("\n\ndurationnnnnnnnn: ", duration)
 	if request.method == 'GET':
 		try:
 			data = {'duration': duration, 'marks': '', 'q': '', 'a': "", 'b':"",'c':"",'d':"" }
@@ -238,6 +239,7 @@ def test(testid):
 	else:
 		cur = mysql.connection.cursor()
 		flag = request.form['flag']
+		# print("flagggg: ",flag)
 		if flag == 'get':
 			num = request.form['no']
 			results = cur.execute('SELECT * from questions where test_id = %s and qid =%s',(testid, num))
@@ -259,6 +261,7 @@ def test(testid):
 		elif flag=='time':
 			time_left = request.form['time']
 			try:
+				duration = time_left
 				cur.execute('UPDATE studentTestInfo set time_left=SEC_TO_TIME(%s) where test_id = %s and username = %s and completed=0', (time_left, testid, session['username']))
 				mysql.connection.commit()
 				cur.close()
